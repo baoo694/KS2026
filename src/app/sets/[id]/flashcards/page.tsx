@@ -1,9 +1,7 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
 import { getStudySetById } from '@/lib/actions/study-sets';
 import { FlashcardDeck } from '@/components/flashcard/FlashcardDeck';
-import { StudyModeNav } from '@/components/layout/Navigation';
+import { ImmersiveLayout } from '@/components/layout/ImmersiveLayout';
 
 interface FlashcardsPageProps {
   params: Promise<{ id: string }>;
@@ -18,25 +16,11 @@ export default async function FlashcardsPage({ params }: FlashcardsPageProps) {
   }
   
   return (
-    <div className="mx-auto max-w-5xl px-4 py-8 sm:px-6 lg:px-8">
-      {/* Header */}
-      <div className="mb-8">
-        <Link 
-          href={`/sets/${id}`}
-          className="inline-flex items-center text-sm text-slate-600 hover:text-indigo-600 mb-4"
-        >
-          <ArrowLeft className="mr-2 h-4 w-4" />
-          Back to set
-        </Link>
-        
-        <StudyModeNav setId={id} />
-      </div>
-      
-      {/* Flashcard Deck */}
+    <ImmersiveLayout setId={id} exitLabel="Back to set">
       <FlashcardDeck 
         flashcards={studySet.flashcards} 
         setTitle={studySet.title}
       />
-    </div>
+    </ImmersiveLayout>
   );
 }

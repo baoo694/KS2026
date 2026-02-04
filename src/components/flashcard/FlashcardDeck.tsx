@@ -79,17 +79,17 @@ export function FlashcardDeck({ flashcards: initialCards, setTitle }: FlashcardD
   }
   
   return (
-    <div className="max-w-3xl mx-auto space-y-6">
+    <div className="w-full max-w-3xl mx-auto flex flex-col items-center gap-4 sm:gap-6">
       {/* Title & Progress */}
-      <div className="text-center">
-        <h1 className="text-xl font-semibold text-slate-900">{setTitle}</h1>
-        <div className="mt-4">
+      <div className="text-center w-full">
+        <h1 className="text-lg sm:text-xl font-semibold text-slate-900">{setTitle}</h1>
+        <div className="mt-2 sm:mt-4">
           <ProgressBar current={currentIndex + 1} total={cards.length} />
         </div>
       </div>
       
       {/* Card */}
-      <div className="flex justify-center">
+      <div className="flex justify-center w-full flex-1 min-h-0">
         <FlashcardItem
           term={currentCard.term}
           definition={currentCard.definition}
@@ -110,13 +110,13 @@ export function FlashcardDeck({ flashcards: initialCards, setTitle }: FlashcardD
       
       {/* Keyboard Hints (hidden on touch devices) */}
       {!isTouchDevice && (
-        <div className="flex justify-center gap-6 text-xs text-slate-400">
+        <div className="flex justify-center gap-4 sm:gap-6 text-xs text-slate-400">
           <span>
-            <kbd className="px-2 py-1 rounded bg-slate-100 font-mono">Space</kbd> to flip
+            <kbd className="px-2 py-1 rounded bg-slate-100 font-mono">Space</kbd> flip
           </span>
           <span>
             <kbd className="px-2 py-1 rounded bg-slate-100 font-mono">←</kbd>{' '}
-            <kbd className="px-2 py-1 rounded bg-slate-100 font-mono">→</kbd> to navigate
+            <kbd className="px-2 py-1 rounded bg-slate-100 font-mono">→</kbd> navigate
           </span>
         </div>
       )}

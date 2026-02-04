@@ -24,7 +24,7 @@ export function FlashcardItem({ term, definition, isFlipped, onFlip }: Flashcard
     >
       <div
         className={`
-          relative w-full aspect-[3/2] preserve-3d flashcard-flip
+          relative w-full aspect-[4/3] sm:aspect-[3/2] max-h-[50vh] preserve-3d flashcard-flip
           ${isFlipped ? 'rotate-y-180' : ''}
         `}
       >
