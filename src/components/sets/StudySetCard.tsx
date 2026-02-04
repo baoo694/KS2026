@@ -25,8 +25,11 @@ export function StudySetCard({ studySet }: StudySetCardProps) {
   const handleDelete = async () => {
     if (!confirm('Are you sure you want to delete this study set?')) return;
     
+    const password = prompt('Please enter password to delete this set:');
+    if (!password) return;
+    
     setIsDeleting(true);
-    const result = await deleteStudySet(studySet.id);
+    const result = await deleteStudySet(studySet.id, password);
     
     if (!result.success) {
       alert('Failed to delete study set: ' + result.error);

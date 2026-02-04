@@ -52,7 +52,16 @@ export async function getStudySetById(id: string): Promise<StudySet | null> {
   return data;
 }
 
-export async function createStudySet(input: StudySetInput): Promise<{ success: boolean; id?: string; error?: string }> {
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'KSPKA';
+
+export async function createStudySet(
+  input: StudySetInput,
+  adminPassword: string,
+): Promise<{ success: boolean; id?: string; error?: string }> {
+  if (adminPassword !== ADMIN_PASSWORD) {
+    return { success: false, error: 'Invalid admin password' };
+  }
+
   const supabase = await createClient();
   
   // Create the study set
@@ -99,9 +108,14 @@ export async function createStudySet(input: StudySetInput): Promise<{ success: b
 }
 
 export async function updateStudySet(
-  id: string, 
-  input: StudySetInput
+  id: string,
+  input: StudySetInput,
+  adminPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
+  if (adminPassword !== ADMIN_PASSWORD) {
+    return { success: false, error: 'Invalid admin password' };
+  }
+
   const supabase = await createClient();
   
   // Update study set metadata
@@ -155,7 +169,14 @@ export async function updateStudySet(
   return { success: true };
 }
 
-export async function deleteStudySet(id: string): Promise<{ success: boolean; error?: string }> {
+export async function deleteStudySet(
+  id: string,
+  adminPassword: string,
+): Promise<{ success: boolean; error?: string }> {
+  if (adminPassword !== ADMIN_PASSWORD) {
+    return { success: false, error: 'Invalid admin password' };
+  }
+
   const supabase = await createClient();
   
   const { error } = await supabase

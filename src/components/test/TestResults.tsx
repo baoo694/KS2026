@@ -51,55 +51,57 @@ export function TestResults({ result, questions, onRetry }: TestResultsProps) {
       {/* Detailed Results */}
       <div className="space-y-4">
         <h3 className="text-lg font-semibold text-slate-900">Review Answers</h3>
-        {questions.map((question, idx) => {
-          const answer = result.answers.find(a => a.questionId === question.id);
-          const isCorrect = answer?.isCorrect ?? false;
-          
-          return (
-            <Card 
-              key={question.id} 
-              className={`border-l-4 ${isCorrect ? 'border-l-emerald-500' : 'border-l-red-500'}`}
-            >
-              <CardContent className="py-4">
-                <div className="flex items-start gap-3">
-                  {isCorrect ? (
-                    <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5" />
-                  ) : (
-                    <XCircle className="h-5 w-5 text-red-500 mt-0.5" />
-                  )}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
-                      <span>Question {idx + 1}</span>
-                      <span>•</span>
-                      <span className="capitalize">{question.type.replace('-', ' ')}</span>
-                    </div>
-                    <p className="font-medium text-slate-900">{question.flashcard.term}</p>
-                    
-                    <div className="mt-3 space-y-2 text-sm">
-                      {!isCorrect && (
-                        <div className="flex gap-2">
-                          <span className="text-red-600 font-medium">Your answer:</span>
-                          <span className="text-slate-600">
-                            {answer?.userAnswer || '(no answer)'}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-3 gap-4">
+          {questions.map((question, idx) => {
+            const answer = result.answers.find(a => a.questionId === question.id);
+            const isCorrect = answer?.isCorrect ?? false;
+            
+            return (
+              <Card 
+                key={question.id} 
+                className={`border-l-4 ${isCorrect ? 'border-l-emerald-500' : 'border-l-red-500'} h-full flex flex-col`}
+              >
+                <CardContent className="py-4 flex-1">
+                  <div className="flex items-start gap-3 h-full">
+                    {isCorrect ? (
+                      <CheckCircle2 className="h-5 w-5 text-emerald-500 mt-0.5 flex-shrink-0" />
+                    ) : (
+                      <XCircle className="h-5 w-5 text-red-500 mt-0.5 flex-shrink-0" />
+                    )}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 text-xs text-slate-400 mb-1">
+                        <span>Question {idx + 1}</span>
+                        <span>•</span>
+                        <span className="capitalize">{question.type.replace('-', ' ')}</span>
+                      </div>
+                      <p className="font-medium text-slate-900 truncate-2-lines">{question.flashcard.term}</p>
+                      
+                      <div className="mt-3 space-y-2 text-sm">
+                        {!isCorrect && (
+                          <div className="flex flex-col gap-0.5">
+                            <span className="text-red-600 font-semibold text-xs uppercase tracking-tight">Your answer:</span>
+                            <span className="text-slate-600 line-clamp-2">
+                              {answer?.userAnswer || '(no answer)'}
+                            </span>
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-0.5">
+                          <span className="text-emerald-600 font-semibold text-xs uppercase tracking-tight">Correct answer:</span>
+                          <span className="text-slate-600 line-clamp-2">
+                            {question.type === 'true-false' 
+                              ? question.isPairCorrect ? 'True' : 'False'
+                              : question.flashcard.definition
+                            }
                           </span>
                         </div>
-                      )}
-                      <div className="flex gap-2">
-                        <span className="text-emerald-600 font-medium">Correct answer:</span>
-                        <span className="text-slate-600">
-                          {question.type === 'true-false' 
-                            ? question.isPairCorrect ? 'True' : 'False'
-                            : question.flashcard.definition
-                          }
-                        </span>
                       </div>
                     </div>
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
       
       {/* Retry Button */}
