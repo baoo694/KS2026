@@ -203,8 +203,16 @@ html {
   flex-direction: column;
   align-items: stretch;
   justify-content: flex-start;
-  padding: 2.5rem 1rem 2rem;
-  padding-top: 6rem;
+  /* Very compact spacing on small screens */
+  padding: 0.75rem 0.75rem 1rem;
+  padding-top: 1.25rem;
+}
+
+@media (min-width: 768px) {
+  .immersive-content {
+    padding: 1.5rem 1.5rem 1.5rem;
+    padding-top: 1rem;
+  }
 }
 
 /* Hide header/footer when immersive mode is active */

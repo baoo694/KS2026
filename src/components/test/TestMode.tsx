@@ -90,8 +90,8 @@ export function TestMode({ flashcards, setTitle }: TestModeProps) {
   };
   
   return (
-    <div className="max-w-3xl mx-auto">
-      <div className="text-center mb-8">
+    <div className="max-w-3xl mx-auto pt-2 pb-2 sm:pt-3 sm:pb-3">
+      <div className="text-center mb-6 sm:mb-8">
         <h1 className="text-xl font-semibold text-slate-900">{setTitle}</h1>
         <p className="text-sm text-slate-500 mt-1">Test Mode</p>
       </div>

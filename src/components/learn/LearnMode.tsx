@@ -140,7 +140,7 @@ export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps
   }
   
   return (
-    <div className="max-w-2xl mx-auto space-y-8">
+    <div className="max-w-2xl mx-auto space-y-5 sm:space-y-7 py-2 sm:py-4">
       {/* Header */}
       <div className="text-center">
         <h1 className="text-xl font-semibold text-slate-900">{setTitle}</h1>
@@ -150,13 +150,13 @@ export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps
       </div>
       
       {/* Progress */}
-      <div className="flex justify-center gap-8 items-center">
-        <ProgressCircle progress={progress} size={100} strokeWidth={6} />
+      <div className="flex justify-center gap-6 sm:gap-8 items-center">
+        <ProgressCircle progress={progress} size={90} strokeWidth={6} />
         <ProgressLegend progress={progress} />
       </div>
       
       {/* Question Card */}
-      <Card className="p-8 text-center">
+      <Card className="p-6 sm:p-8 text-center">
         <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">
           Term
         </span>
@@ -166,12 +166,12 @@ export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps
       </Card>
       
       {/* Answer Options */}
-      <div className="grid gap-3">
+      <div className="grid gap-2.5 sm:gap-3">
         {currentQuestion.options.map((option, index) => {
           const isSelected = selectedAnswer === index;
           const isCorrect = index === currentQuestion.correctIndex;
           
-          let className = 'w-full p-4 rounded-xl border-2 text-left transition-all ';
+          let className = 'w-full px-3 py-3 sm:px-4 sm:py-4 rounded-xl border-2 text-left transition-all ';
           
           if (showFeedback) {
             if (isCorrect) {

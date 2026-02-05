@@ -67,7 +67,7 @@ export function TestRunner({ questions, onSubmit }: TestRunnerProps) {
   const answeredCount = Object.keys(answers).filter(k => answers[k]).length;
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-4 sm:space-y-5">
       {/* Progress */}
       <ProgressBar current={currentIndex + 1} total={questions.length} />
       
@@ -193,7 +193,7 @@ export function TestRunner({ questions, onSubmit }: TestRunnerProps) {
       </div>
       
       {/* Question Navigation Dots */}
-      <div className="flex flex-wrap justify-center gap-2 pt-4">
+      <div className="flex flex-wrap justify-center gap-2 pt-2 sm:pt-3">
         {questions.map((q, idx) => {
           const isAnswered = !!answers[q.id];
           const isCurrent = idx === currentIndex;
