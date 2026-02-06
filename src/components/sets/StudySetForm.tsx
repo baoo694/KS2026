@@ -75,24 +75,14 @@ export function StudySetForm({ mode, initialData }: StudySetFormProps) {
     
     try {
       if (mode === 'create') {
-        const password = prompt('Please enter password to save this set:');
-        if (!password) {
-          setIsSubmitting(false);
-          return;
-        }
-        const result = await createStudySet(input, password);
+        const result = await createStudySet(input, '');
         if (result.success && result.id) {
           router.push(`/sets/${result.id}`);
         } else {
           setError(result.error || 'Failed to create study set');
         }
       } else if (initialData) {
-        const password = prompt('Please enter password to save this set:');
-        if (!password) {
-          setIsSubmitting(false);
-          return;
-        }
-        const result = await updateStudySet(initialData.id, input, password);
+        const result = await updateStudySet(initialData.id, input, '');
         if (result.success) {
           router.push(`/sets/${initialData.id}`);
         } else {

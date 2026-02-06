@@ -1,35 +1,80 @@
 'use server';
 
 import { createClient } from '@/lib/supabase/server';
-import { StudySet, StudySetInput, Flashcard, FlashcardInput } from '@/types';
+import { StudySet, StudySetInput, FlashcardInput } from '@/types';
 import { revalidatePath } from 'next/cache';
 
 // ============================================================================
 // Study Set Actions
 // ============================================================================
 
+// Lấy tất cả các study set của user hiện tại (dùng cho trang "My Sets")
 export async function getStudySets(): Promise<StudySet[]> {
   const supabase = await createClient();
-  
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return [];
+  }
+
   const { data, error } = await supabase
     .from('study_sets')
-    .select(`
+    .select(
+      `
       *,
       flashcards:flashcards(count)
-    `)
+    `,
+    )
+    .eq('user_id', user.id)
     .order('updated_at', { ascending: false });
-  
+
   if (error) {
     console.error('Error fetching study sets:', error);
     return [];
   }
-  
+
+  return data || [];
+}
+
+// Lấy tất cả các study set của mọi user (dùng cho trang "All Sets")
+export async function getAllStudySets(): Promise<StudySet[]> {
+  const supabase = await createClient();
+
+  const { data, error } = await supabase
+    .from('study_sets')
+    .select(
+      `
+      *,
+      flashcards:flashcards(count)
+    `,
+    )
+    .order('updated_at', { ascending: false });
+
+  if (error) {
+    console.error('Error fetching all study sets:', error);
+    return [];
+  }
+
   return data || [];
 }
 
 export async function getStudySetById(id: string): Promise<StudySet | null> {
   const supabase = await createClient();
   
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  // Chỉ cho phép user đã đăng nhập xem set
+  if (!user) {
+    return null;
+  }
+  
+  // Bỏ .eq('user_id', user.id) để ai cũng xem được set (nhưng phải đăng nhập)
+  // Dùng .maybeSingle() thay vì .single() để tránh lỗi PGRST116 khi không tìm thấy
   const { data, error } = await supabase
     .from('study_sets')
     .select(`
@@ -37,7 +82,7 @@ export async function getStudySetById(id: string): Promise<StudySet | null> {
       flashcards:flashcards(*)
     `)
     .eq('id', id)
-    .single();
+    .maybeSingle();
   
   // Sort flashcards by position after fetching
   if (data?.flashcards) {
@@ -52,24 +97,27 @@ export async function getStudySetById(id: string): Promise<StudySet | null> {
   return data;
 }
 
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'KSPKA';
-
 export async function createStudySet(
   input: StudySetInput,
   adminPassword: string,
 ): Promise<{ success: boolean; id?: string; error?: string }> {
-  if (adminPassword !== ADMIN_PASSWORD) {
-    return { success: false, error: 'Invalid admin password' };
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' };
   }
 
-  const supabase = await createClient();
-  
   // Create the study set
   const { data: studySet, error: setError } = await supabase
     .from('study_sets')
     .insert({
       title: input.title,
       description: input.description || null,
+      user_id: user.id,
     })
     .select()
     .single();
@@ -112,12 +160,16 @@ export async function updateStudySet(
   input: StudySetInput,
   adminPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
-  if (adminPassword !== ADMIN_PASSWORD) {
-    return { success: false, error: 'Invalid admin password' };
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' };
   }
 
-  const supabase = await createClient();
-  
   // Update study set metadata
   const { error: setError } = await supabase
     .from('study_sets')
@@ -125,7 +177,8 @@ export async function updateStudySet(
       title: input.title,
       description: input.description || null,
     })
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
   
   if (setError) {
     console.error('Error updating study set:', setError);
@@ -173,16 +226,21 @@ export async function deleteStudySet(
   id: string,
   adminPassword: string,
 ): Promise<{ success: boolean; error?: string }> {
-  if (adminPassword !== ADMIN_PASSWORD) {
-    return { success: false, error: 'Invalid admin password' };
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' };
   }
 
-  const supabase = await createClient();
-  
   const { error } = await supabase
     .from('study_sets')
     .delete()
-    .eq('id', id);
+    .eq('id', id)
+    .eq('user_id', user.id);
   
   if (error) {
     console.error('Error deleting study set:', error);
@@ -204,6 +262,35 @@ export async function updateFlashcardStatus(
 ): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
   
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' };
+  }
+  
+  // Verify the flashcard belongs to a study set owned by the user
+  const { data: flashcard } = await supabase
+    .from('flashcards')
+    .select('study_set_id')
+    .eq('id', id)
+    .single();
+  
+  if (!flashcard) {
+    return { success: false, error: 'Flashcard not found' };
+  }
+  
+  const { data: studySet } = await supabase
+    .from('study_sets')
+    .select('user_id')
+    .eq('id', flashcard.study_set_id)
+    .single();
+  
+  if (!studySet || studySet.user_id !== user.id) {
+    return { success: false, error: 'Unauthorized' };
+  }
+  
   const { error } = await supabase
     .from('flashcards')
     .update({ status })
@@ -219,6 +306,25 @@ export async function updateFlashcardStatus(
 
 export async function resetFlashcardStatuses(studySetId: string): Promise<{ success: boolean; error?: string }> {
   const supabase = await createClient();
+  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' };
+  }
+  
+  // Verify the study set belongs to the user
+  const { data: studySet } = await supabase
+    .from('study_sets')
+    .select('user_id')
+    .eq('id', studySetId)
+    .single();
+  
+  if (!studySet || studySet.user_id !== user.id) {
+    return { success: false, error: 'Unauthorized' };
+  }
   
   const { error } = await supabase
     .from('flashcards')
@@ -240,6 +346,25 @@ export async function importFlashcardsFromCSV(
   flashcards: FlashcardInput[]
 ): Promise<{ success: boolean; count?: number; error?: string }> {
   const supabase = await createClient();
+  
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    return { success: false, error: 'Unauthorized' };
+  }
+  
+  // Verify the study set belongs to the user
+  const { data: studySet } = await supabase
+    .from('study_sets')
+    .select('user_id')
+    .eq('id', studySetId)
+    .single();
+  
+  if (!studySet || studySet.user_id !== user.id) {
+    return { success: false, error: 'Unauthorized' };
+  }
   
   // Get current max position
   const { data: existingCards } = await supabase

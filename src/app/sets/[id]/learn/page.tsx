@@ -20,6 +20,7 @@ export default async function LearnPage({ params }: LearnPageProps) {
       <LearnMode 
         flashcards={studySet.flashcards} 
         setTitle={studySet.title}
+        studySetId={id}
       />
     </ImmersiveLayout>
   );

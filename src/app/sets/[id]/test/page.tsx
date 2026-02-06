@@ -20,6 +20,7 @@ export default async function TestPage({ params }: TestPageProps) {
       <TestMode 
         flashcards={studySet.flashcards} 
         setTitle={studySet.title}
+        studySetId={id}
       />
     </ImmersiveLayout>
   );

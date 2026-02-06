@@ -16,6 +16,8 @@ export interface StudySet {
   id: string;
   title: string;
   description: string | null;
+  // ID of the Supabase auth user who created this set
+  user_id?: string;
   created_at: string;
   updated_at: string;
   flashcards?: Flashcard[];
@@ -92,3 +94,61 @@ export interface LearnProgress {
   mastered: number;
   total: number;
 }
+
+// ============================================================================
+// User Progress Types (per-user, per-flashcard tracking)
+// ============================================================================
+
+export interface UserFlashcardProgress {
+  id: string;
+  user_id: string;
+  flashcard_id: string;
+  status: FlashcardStatus;
+  correct_count: number;
+  incorrect_count: number;
+  last_studied_at: string | null;
+  created_at: string;
+}
+
+// Extended flashcard with user's personal progress
+export interface FlashcardWithProgress extends Flashcard {
+  user_progress?: UserFlashcardProgress | null;
+}
+
+// ============================================================================
+// Saved Test Result Types (persisted to database)
+// ============================================================================
+
+export interface TestAnswerDetail {
+  questionId: string;
+  questionType: QuestionType;
+  term: string;
+  correctAnswer: string;
+  userAnswer: string;
+  isCorrect: boolean;
+}
+
+export interface SavedTestResult {
+  id: string;
+  user_id: string;
+  study_set_id: string;
+  score: number;
+  total_questions: number;
+  percentage: number;
+  question_types: Record<string, number>;
+  answers: TestAnswerDetail[];
+  completed_at: string;
+  // Joined from study_sets table
+  study_set?: { title: string };
+}
+
+// Input for saving a new test result
+export interface SaveTestResultInput {
+  study_set_id: string;
+  score: number;
+  total_questions: number;
+  percentage: number;
+  question_types: Record<string, number>;
+  answers: TestAnswerDetail[];
+}
+

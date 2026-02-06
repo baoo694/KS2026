@@ -3,15 +3,18 @@
 import { TestResult, TestQuestion } from '@/types';
 import { Button } from '@/components/ui/Button';
 import { Card, CardContent } from '@/components/ui/Card';
-import { Trophy, CheckCircle2, XCircle, RotateCcw } from 'lucide-react';
+import { Trophy, CheckCircle2, XCircle, RotateCcw, Save, Loader2, BarChart3 } from 'lucide-react';
+import Link from 'next/link';
 
 interface TestResultsProps {
   result: TestResult;
   questions: TestQuestion[];
   onRetry: () => void;
+  isSaving?: boolean;
+  saveStatus?: 'idle' | 'saved' | 'error';
 }
 
-export function TestResults({ result, questions, onRetry }: TestResultsProps) {
+export function TestResults({ result, questions, onRetry, isSaving, saveStatus }: TestResultsProps) {
   const getScoreColor = (score: number) => {
     if (score >= 90) return 'text-emerald-600';
     if (score >= 70) return 'text-amber-600';
@@ -34,6 +37,25 @@ export function TestResults({ result, questions, onRetry }: TestResultsProps) {
             <Trophy className="h-8 w-8 text-white" />
           </div>
           <h2 className="text-2xl font-bold text-white">Test Complete!</h2>
+          
+          {/* Save Status */}
+          <div className="mt-3 flex items-center justify-center gap-2 text-white/90 text-sm">
+            {isSaving && (
+              <>
+                <Loader2 className="h-4 w-4 animate-spin" />
+                <span>Saving result...</span>
+              </>
+            )}
+            {saveStatus === 'saved' && (
+              <>
+                <Save className="h-4 w-4" />
+                <span>Result saved to your progress</span>
+              </>
+            )}
+            {saveStatus === 'error' && (
+              <span className="text-red-200">Failed to save result</span>
+            )}
+          </div>
         </div>
         <CardContent className="py-8">
           <div className="text-6xl font-bold mb-2" role="img" aria-label="Score emoji">
@@ -104,12 +126,22 @@ export function TestResults({ result, questions, onRetry }: TestResultsProps) {
         </div>
       </div>
       
-      {/* Retry Button */}
-      <div className="flex justify-center pt-4">
+      {/* Action Buttons */}
+      <div className="flex flex-wrap justify-center gap-4 pt-4">
         <Button onClick={onRetry} size="lg">
           <RotateCcw className="mr-2 h-5 w-5" />
           Take Another Test
         </Button>
+        
+        {saveStatus === 'saved' && (
+          <Link 
+            href="/progress"
+            className="inline-flex items-center justify-center gap-2 px-6 py-3 bg-slate-100 text-slate-700 rounded-xl font-medium hover:bg-slate-200 transition-colors"
+          >
+            <BarChart3 className="h-5 w-5" />
+            View Progress
+          </Link>
+        )}
       </div>
     </div>
   );

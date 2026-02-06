@@ -1,23 +1,27 @@
 'use client';
 
 import { useState } from 'react';
-import { Flashcard, TestConfig, TestQuestion, TestResult, QuestionType } from '@/types';
+import { Flashcard, TestConfig, TestQuestion, TestResult, QuestionType, TestAnswerDetail, SaveTestResultInput } from '@/types';
 import { TestSetup } from './TestSetup';
 import { TestRunner } from './TestRunner';
 import { TestResults } from './TestResults';
 import { shuffle, getRandomItems, getRandomItemsExcluding } from '@/lib/utils/shuffle';
+import { saveTestResult } from '@/lib/actions/test-results';
 
 interface TestModeProps {
   flashcards: Flashcard[];
   setTitle: string;
+  studySetId: string;
 }
 
 type TestPhase = 'setup' | 'running' | 'results';
 
-export function TestMode({ flashcards, setTitle }: TestModeProps) {
+export function TestMode({ flashcards, setTitle, studySetId }: TestModeProps) {
   const [phase, setPhase] = useState<TestPhase>('setup');
   const [questions, setQuestions] = useState<TestQuestion[]>([]);
   const [result, setResult] = useState<TestResult | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'saved' | 'error'>('idle');
   
   const generateQuestions = (config: TestConfig): TestQuestion[] => {
     const selectedCards = getRandomItems(flashcards, config.questionCount);
@@ -76,17 +80,67 @@ export function TestMode({ flashcards, setTitle }: TestModeProps) {
     const generatedQuestions = generateQuestions(config);
     setQuestions(generatedQuestions);
     setPhase('running');
+    setSaveStatus('idle');
   };
   
-  const handleSubmitTest = (testResult: TestResult) => {
+  const handleSubmitTest = async (testResult: TestResult) => {
     setResult(testResult);
     setPhase('results');
+    
+    // Auto-save test result
+    setIsSaving(true);
+    try {
+      // Build detailed answers for storage
+      const detailedAnswers: TestAnswerDetail[] = questions.map(q => {
+        const answer = testResult.answers.find(a => a.questionId === q.id);
+        return {
+          questionId: q.id,
+          questionType: q.type,
+          term: q.flashcard.term,
+          correctAnswer: q.type === 'true-false' 
+            ? (q.isPairCorrect ? 'True' : 'False')
+            : q.flashcard.definition,
+          userAnswer: answer?.userAnswer || '',
+          isCorrect: answer?.isCorrect ?? false,
+        };
+      });
+      
+      // Count question types
+      const questionTypes: Record<string, number> = {};
+      questions.forEach(q => {
+        questionTypes[q.type] = (questionTypes[q.type] || 0) + 1;
+      });
+      
+      const input: SaveTestResultInput = {
+        study_set_id: studySetId,
+        score: testResult.correctAnswers,
+        total_questions: testResult.totalQuestions,
+        percentage: testResult.score,
+        question_types: questionTypes,
+        answers: detailedAnswers,
+      };
+      
+      const saveResult = await saveTestResult(input);
+      
+      if (saveResult.success) {
+        setSaveStatus('saved');
+      } else {
+        console.error('Failed to save test result:', saveResult.error);
+        setSaveStatus('error');
+      }
+    } catch (error) {
+      console.error('Error saving test result:', error);
+      setSaveStatus('error');
+    } finally {
+      setIsSaving(false);
+    }
   };
   
   const handleRetry = () => {
     setPhase('setup');
     setQuestions([]);
     setResult(null);
+    setSaveStatus('idle');
   };
   
   return (
@@ -114,7 +168,9 @@ export function TestMode({ flashcards, setTitle }: TestModeProps) {
         <TestResults 
           result={result} 
           questions={questions}
-          onRetry={handleRetry} 
+          onRetry={handleRetry}
+          isSaving={isSaving}
+          saveStatus={saveStatus}
         />
       )}
     </div>

@@ -1,54 +1,84 @@
 'use client';
 
 import { useState, useCallback, useEffect } from 'react';
-import { Flashcard, LearnProgress } from '@/types';
+import { Flashcard, FlashcardWithProgress, LearnProgress } from '@/types';
 import { shuffle, getRandomItemsExcluding } from '@/lib/utils/shuffle';
 import { ProgressCircle, ProgressLegend } from '@/components/ui/ProgressCircle';
 import { Button } from '@/components/ui/Button';
 import { Card } from '@/components/ui/Card';
 import { RotateCcw, CheckCircle2 } from 'lucide-react';
-import { updateFlashcardStatus } from '@/lib/actions/study-sets';
+import { updateUserProgress, getUserProgressForSet, resetUserProgressForSet } from '@/lib/actions/progress';
 
 interface LearnModeProps {
   flashcards: Flashcard[];
   setTitle: string;
+  studySetId: string;
 }
 
 interface QuestionState {
-  card: Flashcard;
+  card: FlashcardWithProgress;
   options: string[];
   correctIndex: number;
 }
 
-export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps) {
-  const [cards, setCards] = useState<Flashcard[]>([]);
-  const [queue, setQueue] = useState<Flashcard[]>([]);
+export function LearnMode({ flashcards: initialCards, setTitle, studySetId }: LearnModeProps) {
+  const [cards, setCards] = useState<FlashcardWithProgress[]>([]);
+  const [queue, setQueue] = useState<FlashcardWithProgress[]>([]);
   const [currentQuestion, setCurrentQuestion] = useState<QuestionState | null>(null);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showFeedback, setShowFeedback] = useState(false);
   const [isComplete, setIsComplete] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Calculate progress
+  // Calculate progress based on user's personal progress
   const progress: LearnProgress = {
-    new: cards.filter(c => c.status === 'new').length,
-    learning: cards.filter(c => c.status === 'learning').length,
-    mastered: cards.filter(c => c.status === 'mastered').length,
+    new: cards.filter(c => !c.user_progress || c.user_progress.status === 'new').length,
+    learning: cards.filter(c => c.user_progress?.status === 'learning').length,
+    mastered: cards.filter(c => c.user_progress?.status === 'mastered').length,
     total: cards.length,
   };
   
-  // Initialize
+  // Load user's progress on mount
   useEffect(() => {
-    const initialQueue = shuffle(initialCards.filter(c => c.status !== 'mastered'));
-    setCards(initialCards);
-    setQueue(initialQueue);
-    if (initialQueue.length > 0) {
-      generateQuestion(initialQueue[0], initialCards);
-    } else {
-      setIsComplete(true);
+    async function loadProgress() {
+      setIsLoading(true);
+      const cardsWithProgress = await getUserProgressForSet(studySetId);
+      
+      if (cardsWithProgress.length === 0) {
+        // Fallback to initial cards if no progress data
+        const cardsAsFWP: FlashcardWithProgress[] = initialCards.map(c => ({
+          ...c,
+          user_progress: null,
+        }));
+        setCards(cardsAsFWP);
+        const initialQueue = shuffle(cardsAsFWP);
+        setQueue(initialQueue);
+        if (initialQueue.length > 0) {
+          generateQuestion(initialQueue[0], cardsAsFWP);
+        } else {
+          setIsComplete(true);
+        }
+      } else {
+        setCards(cardsWithProgress);
+        // Only queue cards that are not mastered
+        const notMastered = cardsWithProgress.filter(
+          c => !c.user_progress || c.user_progress.status !== 'mastered'
+        );
+        const initialQueue = shuffle(notMastered);
+        setQueue(initialQueue);
+        if (initialQueue.length > 0) {
+          generateQuestion(initialQueue[0], cardsWithProgress);
+        } else {
+          setIsComplete(true);
+        }
+      }
+      setIsLoading(false);
     }
-  }, [initialCards]);
+    
+    loadProgress();
+  }, [studySetId, initialCards]);
   
-  const generateQuestion = useCallback((card: Flashcard, allCards: Flashcard[]) => {
+  const generateQuestion = useCallback((card: FlashcardWithProgress, allCards: FlashcardWithProgress[]) => {
     // Get 3 random distractors
     const distractors = getRandomItemsExcluding(
       allCards.map(c => c.definition),
@@ -66,7 +96,7 @@ export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps
     setShowFeedback(false);
   }, []);
   
-  const handleAnswer = async (index: number) => {
+  const handleAnswer = (index: number) => {
     if (showFeedback) return;
     
     setSelectedAnswer(index);
@@ -77,22 +107,57 @@ export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps
     
     if (!card) return;
     
-    // Update card status
-    const newStatus = isCorrect ? 'mastered' : 'learning';
-    await updateFlashcardStatus(card.id, newStatus);
+    // Optimistic update: predict new status locally
+    const currentCorrectCount = card.user_progress?.correct_count || 0;
+    const currentIncorrectCount = card.user_progress?.incorrect_count || 0;
+    const isFirstActualTry = !card.user_progress || (currentCorrectCount === 0 && currentIncorrectCount === 0);
     
-    // Update local state
+    let predictedStatus: 'new' | 'learning' | 'mastered';
+    if (isCorrect) {
+      predictedStatus = (currentCorrectCount + 1 >= 2 || isFirstActualTry) ? 'mastered' : 'learning';
+    } else {
+      predictedStatus = 'learning';
+    }
+    
+    // Update local state IMMEDIATELY (optimistic update)
     setCards(prev => prev.map(c => 
-      c.id === card.id ? { ...c, status: newStatus } : c
+      c.id === card.id 
+        ? { 
+            ...c, 
+            user_progress: {
+              id: c.user_progress?.id || '',
+              user_id: c.user_progress?.user_id || '',
+              flashcard_id: c.id,
+              status: predictedStatus,
+              correct_count: currentCorrectCount + (isCorrect ? 1 : 0),
+              incorrect_count: currentIncorrectCount + (isCorrect ? 0 : 1),
+              last_studied_at: new Date().toISOString(),
+              created_at: c.user_progress?.created_at || new Date().toISOString(),
+            }
+          } 
+        : c
     ));
     
-    // Wait for animation, then move to next
+    // Fire-and-forget: API call runs in background, don't await
+    updateUserProgress(card.id, isCorrect).catch(err => {
+      console.error('Failed to sync progress:', err);
+      // Could add retry logic or show toast notification here
+    });
+    
+    // Animation delay runs IMMEDIATELY, not after API
     setTimeout(() => {
       const newQueue = queue.slice(1);
       
       if (!isCorrect) {
         // Add card back to queue for later
-        newQueue.push({ ...card, status: 'learning' });
+        const updatedCard = { 
+          ...card, 
+          user_progress: {
+            ...card.user_progress,
+            status: 'learning' as const,
+          } as typeof card.user_progress
+        };
+        newQueue.push(updatedCard);
       }
       
       setQueue(newQueue);
@@ -102,16 +167,30 @@ export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps
       } else {
         setIsComplete(true);
       }
-    }, 1200);
+    }, 500);
   };
   
-  const handleRestart = () => {
-    const resetQueue = shuffle(initialCards);
-    setCards(initialCards);
+  const handleRestart = async () => {
+    // Reset user progress for this set
+    await resetUserProgressForSet(studySetId);
+    
+    // Reset local state
+    const resetCards: FlashcardWithProgress[] = cards.map(c => ({
+      ...c,
+      user_progress: null,
+    }));
+    const resetQueue = shuffle(resetCards);
+    setCards(resetCards);
     setQueue(resetQueue);
     setIsComplete(false);
-    generateQuestion(resetQueue[0], initialCards);
+    if (resetQueue.length > 0) {
+      generateQuestion(resetQueue[0], resetCards);
+    }
   };
+  
+  if (isLoading) {
+    return <div className="text-center py-12 text-slate-500">Loading your progress...</div>;
+  }
   
   if (isComplete) {
     return (
@@ -129,7 +208,7 @@ export function LearnMode({ flashcards: initialCards, setTitle }: LearnModeProps
         <ProgressLegend progress={progress} />
         <Button onClick={handleRestart} className="mt-6">
           <RotateCcw className="mr-2 h-4 w-4" />
-          Study Again
+          Reset & Study Again
         </Button>
       </div>
     );
