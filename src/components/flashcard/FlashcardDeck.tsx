@@ -35,6 +35,8 @@ export function FlashcardDeck({
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
   const [isShuffled, setIsShuffled] = useState(false);
+  const [slideDirection, setSlideDirection] = useState<'left' | 'right' | null>(null);
+  const [animationKey, setAnimationKey] = useState(0);
   const [isPending, startTransition] = useTransition();
   
   // Progress stats: New, Learning, Mastered
@@ -45,12 +47,15 @@ export function FlashcardDeck({
   const currentCard = activeDeck[currentIndex];
   
   const flipCard = useCallback(() => {
+    setSlideDirection(null); // Clear slide animation when flipping
     setIsFlipped(prev => !prev);
   }, []);
   
   const goToPrevious = useCallback(() => {
     if (currentIndex > 0) {
       setIsFlipped(false);
+      setSlideDirection('right');
+      setAnimationKey(prev => prev + 1);
       setCurrentIndex(prev => prev - 1);
     }
   }, [currentIndex]);
@@ -58,6 +63,8 @@ export function FlashcardDeck({
   const goToNext = useCallback(() => {
     if (currentIndex < activeDeck.length - 1) {
       setIsFlipped(false);
+      setSlideDirection('left');
+      setAnimationKey(prev => prev + 1);
       setCurrentIndex(prev => prev + 1);
     }
   }, [currentIndex, activeDeck.length]);
@@ -256,12 +263,14 @@ export function FlashcardDeck({
       </div>
       
       {/* Card */}
-      <div className="flex justify-center w-full flex-1 min-h-0">
+      <div className="flex justify-center w-full flex-1 min-h-0 overflow-hidden">
         <FlashcardItem
           term={currentCard.term}
           definition={currentCard.definition}
           isFlipped={isFlipped}
           onFlip={flipCard}
+          slideDirection={slideDirection}
+          animationTrigger={animationKey}
         />
       </div>
       

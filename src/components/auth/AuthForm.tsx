@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useTransition } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Input } from '@/components/ui/Input';
@@ -15,6 +15,7 @@ interface AuthFormProps {
 
 export function AuthForm({ type, action }: AuthFormProps) {
   const router = useRouter();
+  const [isPending, startTransition] = useTransition();
   const [isLoading, setIsLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
@@ -53,11 +54,17 @@ export function AuthForm({ type, action }: AuthFormProps) {
         setError(result.error);
       } else if (result.success && result.message) {
         setSuccess(result.message);
-        // Redirect to login page after successful registration
+        // Redirect after successful authentication
         if (type === 'register') {
           setTimeout(() => {
             router.push('/login');
           }, 2000); // Wait 2 seconds to show success message before redirecting
+        } else if (type === 'login') {
+          // Navigate immediately, refresh auth state in background
+          router.replace('/');
+          startTransition(() => {
+            router.refresh();
+          });
         }
       }
     } catch {

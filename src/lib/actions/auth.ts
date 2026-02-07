@@ -65,7 +65,7 @@ export async function signIn(formData: FormData): Promise<AuthResult> {
     return { error: error.message };
   }
 
-  redirect('/');
+  return { success: true, message: 'Login successful!' };
 }
 
 export async function signOut(): Promise<void> {

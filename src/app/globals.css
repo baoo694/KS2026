@@ -19,25 +19,71 @@ body {
   min-height: 100vh;
 }
 
-/* 3D Flashcard Flip Animation */
-.perspective-1000 {
-  perspective: 1000px;
+/* Flashcard Slide Animations - Exit Phase */
+@keyframes slideExitLeft {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(-30%);
+    opacity: 0;
+  }
 }
 
-.preserve-3d {
-  transform-style: preserve-3d;
+@keyframes slideExitRight {
+  from {
+    transform: translateX(0);
+    opacity: 1;
+  }
+  to {
+    transform: translateX(30%);
+    opacity: 0;
+  }
 }
 
-.backface-hidden {
-  backface-visibility: hidden;
+/* Flashcard Slide Animations - Enter Phase */
+@keyframes slideEnterLeft {
+  from {
+    transform: translateX(30%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.rotate-y-180 {
-  transform: rotateY(180deg);
+@keyframes slideEnterRight {
+  from {
+    transform: translateX(-30%);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
 }
 
-.flashcard-flip {
-  transition: transform 0.6s cubic-bezier(0.4, 0, 0.2, 1);
+.flashcard-exit-left {
+  animation: slideExitLeft 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.flashcard-exit-right {
+  animation: slideExitRight 0.2s cubic-bezier(0.4, 0, 1, 1) forwards;
+}
+
+.flashcard-enter-left {
+  animation: slideEnterLeft 0.3s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+.flashcard-enter-right {
+  animation: slideEnterRight 0.3s cubic-bezier(0, 0, 0.2, 1) forwards;
+}
+
+/* Fade animation for revealing definition */
+.flashcard-fade {
+  transition: opacity 0.3s ease-in-out;
 }
 
 /* Match Game Animations */

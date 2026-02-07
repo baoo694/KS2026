@@ -178,15 +178,15 @@ export default function HomePage() {
                 Transform boring flashcards into an adventure. Learn with games, track your progress, and ace every exam!
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center lg:justify-start">
-                <Link href="/sets/new">
-                  <button className="group flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-bold text-lg shadow-lg shadow-indigo-500/30 border-4 border-indigo-600/20 cursor-pointer transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl hover:shadow-indigo-500/40">
+              <div className="flex flex-row gap-3 justify-center lg:justify-start">
+                <Link href="/sets/new" className="flex-1 sm:flex-none">
+                  <button className="w-full group flex items-center justify-center gap-2 px-4 sm:px-8 py-4 rounded-2xl bg-gradient-to-r from-indigo-500 to-violet-600 text-white font-bold text-sm sm:text-lg shadow-lg shadow-indigo-500/30 border-4 border-indigo-600/20 cursor-pointer transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl hover:shadow-indigo-500/40">
                     Start Learning Free
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="hidden sm:block w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </Link>
-                <button className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-slate-700 font-bold text-lg border-4 border-slate-200 cursor-pointer transition-all duration-200 hover:border-slate-300 hover:bg-slate-50">
-                  <Play className="w-5 h-5 text-indigo-500" />
+                <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-8 py-4 rounded-2xl bg-white text-slate-700 font-bold text-sm sm:text-lg border-4 border-slate-200 cursor-pointer transition-all duration-200 hover:border-slate-300 hover:bg-slate-50">
+                  <Play className="w-4 h-4 sm:w-5 h-5 text-indigo-500" />
                   Watch Demo
                 </button>
               </div>
@@ -210,8 +210,8 @@ export default function HomePage() {
             </div>
             
             {/* Right: Hero Illustration - Claymorphism Cards Stack */}
-            <div className="relative hidden lg:block">
-              <div className="relative w-full aspect-square max-w-lg mx-auto">
+            <div className="relative mt-8 lg:mt-0 animate-in fade-in zoom-in duration-700 slide-in-from-bottom-10 lg:animate-none">
+              <div className="relative w-full aspect-square max-w-[320px] sm:max-w-lg mx-auto scale-90 sm:scale-100 origin-top">
                 {/* Background card */}
                 <ClayCard className="absolute top-8 left-8 w-72 h-48 bg-gradient-to-br from-rose-100 to-pink-50 rotate-[-8deg]" hover={false}>
                   <div className="p-6">
@@ -476,16 +476,16 @@ export default function HomePage() {
                 Join over 10,000 students who are studying smarter, not harder. Start your learning journey today!
               </p>
               
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Link href="/sets/new">
-                  <button className="group flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white text-indigo-600 font-bold text-lg shadow-lg cursor-pointer transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl">
+              <div className="flex flex-row gap-3 justify-center">
+                <Link href="/sets/new" className="flex-1 sm:flex-none">
+                  <button className="w-full group flex items-center justify-center gap-2 px-4 sm:px-8 py-4 rounded-2xl bg-white text-indigo-600 font-bold text-sm sm:text-lg shadow-lg cursor-pointer transition-all duration-200 hover:translate-y-[-2px] hover:shadow-xl">
                     Get Started Free
-                    <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="hidden sm:block w-5 h-5 group-hover:translate-x-1 transition-transform" />
                   </button>
                 </Link>
-                <button className="flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-white/20 text-white font-bold text-lg border-2 border-white/30 cursor-pointer backdrop-blur-sm transition-all duration-200 hover:bg-white/30">
-                  <Clock className="w-5 h-5" />
-                  Takes 30 seconds
+                <button className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 sm:px-8 py-4 rounded-2xl bg-white/20 text-white font-bold text-sm sm:text-lg border-2 border-white/30 cursor-pointer backdrop-blur-sm transition-all duration-200 hover:bg-white/30">
+                  <Clock className="w-4 h-4 sm:w-5 h-5" />
+                  30s
                 </button>
               </div>
             </div>
