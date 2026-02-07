@@ -62,7 +62,7 @@ export function StudySetCard({ studySet }: StudySetCardProps) {
             {cardCount} {cardCount === 1 ? 'card' : 'cards'}
           </span>
           <span className="text-xs text-slate-400">
-            {new Date(studySet.updated_at).toLocaleDateString()}
+            {new Date(studySet.updated_at).toLocaleDateString('en-US')}
           </span>
         </div>
       </Link>

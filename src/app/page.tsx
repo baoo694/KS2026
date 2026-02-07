@@ -288,7 +288,7 @@ export default function HomePage() {
                     </span>
                     <span className="flex items-center gap-1">
                       <Users className="w-4 h-4" />
-                      {course.students.toLocaleString()}
+                      {course.students.toLocaleString('en-US')}
                     </span>
                   </div>
                 </div>
