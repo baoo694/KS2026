@@ -220,7 +220,71 @@ export default function HomePage() {
 
             {/* Right: Hero Illustration - Claymorphism Cards Stack */}
             <div className="relative mt-8 lg:mt-0 animate-in fade-in zoom-in duration-700 slide-in-from-bottom-10 lg:animate-none">
-              <div className="relative w-full aspect-square max-w-[320px] sm:max-w-lg mx-auto scale-90 sm:scale-100 origin-top">
+              {/* Mobile: Stacked cards layout */}
+              <div className="flex flex-col gap-4 sm:hidden px-4">
+                <ClayCard
+                  className="w-full bg-gradient-to-br from-indigo-100 to-blue-50"
+                  hover={false}
+                >
+                  <div className="p-5 flex flex-col gap-3">
+                    <div className="flex items-center gap-3">
+                      <div className="text-3xl">🧠</div>
+                      <div className="font-display text-lg font-bold text-slate-800">
+                        What is photosynthesis?
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <div className="flex-1 h-2 rounded-full bg-indigo-200 overflow-hidden">
+                        <div className="h-full w-3/4 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500" />
+                      </div>
+                      <span className="text-sm font-semibold text-indigo-600">
+                        75%
+                      </span>
+                    </div>
+                  </div>
+                </ClayCard>
+
+                <div className="flex gap-3">
+                  <ClayCard
+                    className="flex-1 bg-gradient-to-br from-rose-100 to-pink-50"
+                    hover={false}
+                  >
+                    <div className="p-4">
+                      <div className="text-2xl mb-1">🎯</div>
+                      <div className="font-display font-bold text-slate-800 text-sm">
+                        Master Mode
+                      </div>
+                      <div className="text-xs text-slate-500">98% accuracy</div>
+                    </div>
+                  </ClayCard>
+
+                  <ClayCard
+                    className="flex-1 bg-gradient-to-br from-amber-100 to-orange-50"
+                    hover={false}
+                  >
+                    <div className="p-4">
+                      <div className="text-2xl mb-1">⚡</div>
+                      <div className="font-display font-bold text-slate-800 text-sm">
+                        Speed Round
+                      </div>
+                      <div className="text-xs text-slate-500">Beat your best!</div>
+                    </div>
+                  </ClayCard>
+                </div>
+
+                {/* Mobile badges */}
+                <div className="flex justify-center gap-3 mt-2">
+                  <div className="px-4 py-2 rounded-full bg-emerald-500 text-white font-bold text-sm shadow-lg shadow-emerald-500/30 border-2 border-emerald-600/20">
+                    +15 XP
+                  </div>
+                  <div className="px-4 py-2 rounded-full bg-amber-500 text-white font-bold text-sm shadow-lg shadow-amber-500/30 border-2 border-amber-600/20">
+                    🔥 5 Day Streak
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop: Original overlapping cards layout */}
+              <div className="relative w-full aspect-square max-w-lg mx-auto hidden sm:block">
                 {/* Background card */}
                 <ClayCard
                   className="absolute top-8 left-8 w-72 h-48 bg-gradient-to-br from-rose-100 to-pink-50 rotate-[-8deg]"
