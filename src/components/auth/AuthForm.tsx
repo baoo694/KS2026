@@ -60,11 +60,8 @@ export function AuthForm({ type, action }: AuthFormProps) {
             router.push('/login');
           }, 2000); // Wait 2 seconds to show success message before redirecting
         } else if (type === 'login') {
-          // Navigate immediately, refresh auth state in background
+          // Navigate to home page - no need for refresh as replace triggers full page load
           router.replace('/');
-          startTransition(() => {
-            router.refresh();
-          });
         }
       }
     } catch {

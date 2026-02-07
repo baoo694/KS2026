@@ -1,7 +1,27 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
+// Routes that require authentication
+const protectedRoutes = ['/sets'];
+
+// Routes that should redirect if user is already logged in
+const authRoutes = ['/login', '/register', '/forgot-password'];
+
 export async function middleware(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Check if this route needs auth verification
+  const isProtectedRoute = protectedRoutes.some((route) =>
+    pathname.startsWith(route)
+  );
+  const isAuthRoute = authRoutes.includes(pathname);
+
+  // Skip Supabase auth check for public routes (performance optimization)
+  if (!isProtectedRoute && !isAuthRoute) {
+    return NextResponse.next();
+  }
+
+  // Only create Supabase client and check auth for routes that need it
   let supabaseResponse = NextResponse.next({
     request,
   });
@@ -29,19 +49,12 @@ export async function middleware(request: NextRequest) {
     }
   );
 
-  // Refresh session if expired
+  // Get user session
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  const { pathname } = request.nextUrl;
-
   // Protected routes - require authentication
-  const protectedRoutes = ['/sets'];
-  const isProtectedRoute = protectedRoutes.some((route) =>
-    pathname.startsWith(route)
-  );
-
   if (isProtectedRoute && !user) {
     const url = request.nextUrl.clone();
     url.pathname = '/login';
@@ -50,9 +63,6 @@ export async function middleware(request: NextRequest) {
   }
 
   // Auth routes - redirect if already logged in
-  const authRoutes = ['/login', '/register', '/forgot-password'];
-  const isAuthRoute = authRoutes.includes(pathname);
-
   if (isAuthRoute && user) {
     const url = request.nextUrl.clone();
     url.pathname = '/';
