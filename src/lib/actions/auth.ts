@@ -32,7 +32,7 @@ export async function signUp(formData: FormData): Promise<AuthResult> {
     email,
     password,
     options: {
-      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback`,
+      emailRedirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://ks-2026.vercel.app'}/auth/callback`,
     },
   });
 
@@ -84,7 +84,7 @@ export async function forgotPassword(formData: FormData): Promise<AuthResult> {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
-    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/auth/callback?type=recovery`,
+    redirectTo: `${process.env.NEXT_PUBLIC_SITE_URL || 'https://ks-2026.vercel.app'}/auth/callback?type=recovery`,
   });
 
   if (error) {
